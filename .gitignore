@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.idea/
+.DS_Store
+
+# Landmarks derived from the UTEC dataset: its license forbids redistribution,
+# so this file stays on your computer only. Re-create it with extract_landmarks.py.
+data/utec_landmarks.csv
+
+# Your own photos
+my_data/
