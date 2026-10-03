@@ -55,6 +55,36 @@ Tips: keep your whole hand in frame, palm toward the camera, about arm's length 
 | `models/asl_classifier.npz` | The trained letter classifier |
 | `data/*.csv` | Hand-landmark training data (no images) |
 
+## Website version (runs in the browser)
+
+The `docs/` folder is a website version of the app. It does the same thing as `app.py`
+(same hand tracking, same trained model, same hold-to-type rules), but runs entirely in the
+visitor's browser. The video never leaves their computer, and speech uses the browser's
+built-in voice, so it works on Windows, Mac, Chromebooks and phones.
+
+**Host it free on GitHub Pages:** on GitHub open the repo -> **Settings** -> **Pages** ->
+under *Build and deployment* choose **Deploy from a branch**, branch **main**, folder **/docs** -> **Save**.
+After a minute the site is live at `https://<your-username>.github.io/asl-translator/`.
+
+**Try it on your own computer first:**
+
+```bash
+cd docs
+python -m http.server 8000
+```
+
+Then open http://localhost:8000 (the camera only works over `http://localhost` or `https://`).
+
+**After retraining** (`python train.py`), run `python export_web_model.py` to copy the new model
+into `docs/models/`, then commit and push.
+
+| File | What it does |
+|---|---|
+| `docs/index.html`, `docs/style.css` | The page |
+| `docs/app.js` | Camera, MediaPipe hand tracking (loaded from the jsDelivr CDN), drawing, speech |
+| `docs/core.js` | Features, the neural network and the speller, ported from Python |
+| `docs/models/` | Copies of the trained model, written by `export_web_model.py` |
+
 ## Datasets
 
 1. **ASL keypoint dataset** – 36,401 hand-landmark samples for A–Z, from
