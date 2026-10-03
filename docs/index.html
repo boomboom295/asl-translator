@@ -6,7 +6,7 @@
   <title>ASL Translator</title>
   <meta name="description" content="Fingerspell the ASL alphabet into your webcam and see it as written and spoken English. Runs entirely in your browser.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f6fed'/%3E%3Ctext x='16' y='22' font-family='Arial' font-weight='700' font-size='14' fill='white' text-anchor='middle'%3EASL%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
   <header class="topbar">
@@ -24,8 +24,8 @@
     <section class="stage-card" aria-label="Camera">
       <div class="modebar">
         <div class="segmented" role="group" aria-label="What to recognize">
-          <button id="modeLetters" aria-pressed="true">Letters</button>
-          <button id="modeWords" aria-pressed="false">Words</button>
+          <button id="modeLetters" aria-pressed="true">Letters <span class="mode-sub">fingerspelling</span></button>
+          <button id="modeWords" aria-pressed="false">Words <span class="mode-sub">both hands</span></button>
         </div>
         <span class="muted small">Press <kbd>W</kbd> to switch</span>
       </div>
@@ -57,6 +57,9 @@
         </div>
       </div>
 
+      <div class="mode-hint" id="modeHint" hidden>
+        Signing a word with both hands? <button class="btn primary" id="hintSwitch">Switch to Words</button>
+      </div>
       <div class="top3" id="top3" aria-label="Top predictions"></div>
       <p class="guess-note muted small" id="guessNote" hidden></p>
     </section>
@@ -110,6 +113,6 @@
     <a href="https://github.com/boomboom295/asl-translator">Source on GitHub</a>
   </footer>
 
-  <script type="module" src="app.js"></script>
+  <script type="module" src="app.js?v=3"></script>
 </body>
 </html>

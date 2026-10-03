@@ -211,3 +211,10 @@ button.pred b { text-transform: capitalize; font-size: .95rem; white-space: nowr
 .vocab { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 14px 0 0; }
 .vocab li { padding: 3px 10px; border-radius: 999px; background: var(--surface-2); font-size: .85rem; text-transform: capitalize; }
 .top3 .pred { min-width: 0; }
+
+.segmented button { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.15; padding: 7px 22px; }
+.mode-sub { font-size: .7rem; font-weight: 500; color: var(--muted); }
+.mode-hint {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 10px 14px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--accent); font-size: .9rem;
+}

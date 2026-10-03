@@ -1,9 +1,9 @@
 // ASL Translator, browser version.
 // Webcam -> MediaPipe hands + face -> letter model (handshapes) and sign model (movements)
 // -> text + speech. Everything runs locally in the browser; no video leaves the device.
-import { Classifier, Smoother, Speller, HAND_CONNECTIONS, landmarksToFeatures, MIN_CONFIDENCE } from "./core.js";
-import { SignClassifier, rawFrame, sequenceFeatures } from "./sequence.js";
-import { MotionDetector, SignSegmenter } from "./segment.js";
+import { Classifier, Smoother, Speller, HAND_CONNECTIONS, landmarksToFeatures, MIN_CONFIDENCE } from "./core.js?v=3";
+import { SignClassifier, rawFrame, sequenceFeatures } from "./sequence.js?v=3";
+import { MotionDetector, SignSegmenter } from "./segment.js?v=3";
 
 const MP_VERSION = "0.10.14";
 const MP_BASE = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}`;
@@ -22,7 +22,7 @@ const ui = {
   hud: $("hud"), letter: $("currentLetter"), ring: $("ringFill"),
   status: $("statusLine"), conf: $("confLine"), top3: $("top3"), guessNote: $("guessNote"),
   transcript: $("transcript"), autoSpeak: $("autoSpeak"), vocab: $("vocab"), vocabCount: $("vocabCount"),
-  modeLetters: $("modeLetters"), modeWords: $("modeWords"), tipsLetters: $("tipsLetters"), tipsWords: $("tipsWords"),
+  modeLetters: $("modeLetters"), modeWords: $("modeWords"), modeHint: $("modeHint"), tipsLetters: $("tipsLetters"), tipsWords: $("tipsWords"),
 };
 
 let hands = null, face = null, letterModel = null, wordModel = null, motionModel = null;
@@ -63,7 +63,7 @@ async function loadJSON(path) {
 async function loadModels() {
   setLoad("Loading the sign models…");
   const [letters, words, motions] = await Promise.all([
-    loadJSON("models/asl_classifier.json"), loadJSON("models/word_classifier.json"), loadJSON("models/motion_classifier.json"),
+    loadJSON("models/asl_classifier.json?v=3"), loadJSON("models/word_classifier.json?v=3"), loadJSON("models/motion_classifier.json?v=3"),
   ]);
   letterModel = new Classifier(letters);
   wordModel = new SignClassifier(words);
@@ -144,7 +144,16 @@ function loop() {
   renderTranscript();
 }
 
+let twoHandsSince = null;
+function updateModeHint(nHands, t) {
+  if (mode !== "letters") { ui.modeHint.hidden = true; twoHandsSince = null; return; }
+  if (nHands >= 2) { if (twoHandsSince === null) twoHandsSince = t; }
+  else if (twoHandsSince !== null && t - twoHandsSince < 0.8) twoHandsSince = null;
+  if (twoHandsSince !== null && t - twoHandsSince > 0.8) ui.modeHint.hidden = false;
+}
+
 function lettersStep(hr, raw, t, w, h, aspect) {
+  updateModeHint((hr.landmarks || []).length, t);
   // 1) movement letters (J, Z)
   const moved = motion.push(t, raw, aspect);
   if (moved) {
@@ -295,6 +304,8 @@ function setMode(m) {
   ui.modeWords.setAttribute("aria-pressed", String(m === "words"));
   ui.tipsLetters.hidden = m !== "letters";
   ui.tipsWords.hidden = m !== "words";
+  ui.modeHint.hidden = true; twoHandsSince = null;
+  try { localStorage.setItem("asl-mode", m); } catch {}
   segmenter.reset();
   smoother.clear();
   wordGuesses = null;
@@ -324,8 +335,10 @@ function flashBtn(btn, label) {
 function act(name) { actions[name](); renderTranscript(); }
 
 ui.startBtn.addEventListener("click", start);
+try { if (localStorage.getItem("asl-mode") === "words") setMode("words"); } catch {}
 ui.modeLetters.addEventListener("click", () => setMode("letters"));
 ui.modeWords.addEventListener("click", () => setMode("words"));
+$("hintSwitch").addEventListener("click", () => setMode("words"));
 $("spaceBtn").addEventListener("click", () => act("space"));
 $("backBtn").addEventListener("click", () => act("back"));
 $("clearBtn").addEventListener("click", () => act("clear"));
