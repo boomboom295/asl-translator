@@ -3,6 +3,7 @@
 Data:
   data/akram_keypoints.csv  - 36k pre-extracted keypoint rows (label index, 42 features)
   data/utec_landmarks.csv   - landmarks extracted from the UTEC ASL image dataset (optional)
+  data/asl_video_landmarks.json - letter clips from the video dataset (optional; many different signers)
 
 Usage:
   python train.py            # evaluate, then train final model -> models/asl_classifier.npz
@@ -43,6 +44,28 @@ def load_utec():
     return np.array(X), np.array(y)
 
 
+VIDEO_WEIGHT = 5   # video frames are repeated: they are fewer but come from many more people
+
+
+def load_video_letters(only=None):
+    """Handshape frames from the letter clips of the video dataset (middle of each clip)."""
+    if not os.path.exists(os.path.join(HERE, "data", "asl_video_landmarks.json")):
+        return None, None, None
+    import train_signs, seqfeat
+    vids = [v for v in train_signs.load_videos() if len(v["word"]) == 1]
+    if only is not None:
+        vids = [vids[i] for i in only]
+    X, y, g = [], [], []
+    for gi, v in enumerate(vids):
+        f = seqfeat.trim(v["frames"])
+        n = len(f)
+        for fr in f[int(n * 0.3): int(n * 0.8) + 1]:
+            if fr[4] > 0.5 and fr[48] < 0.5:
+                pts = np.stack([fr[6:27] * v["aspect"], fr[27:48]], 1)
+                X.append(landmarks_to_features(pts)); y.append(v["word"].upper()); g.append(gi)
+    return np.array(X, np.float32), np.array(y), vids
+
+
 def with_mirrors(X, y):
     return np.vstack([X, mirror(X)]), np.concatenate([y, y])
 
@@ -74,9 +97,29 @@ def main():
         print(f"[3] Train Akram+75% UTEC -> test 25% UTEC accuracy: {accuracy_score(yu_te, pu):.3f}\n")
         print(classification_report(yu_te, pu, zero_division=0))
 
+    Xv, yv, _ = load_video_letters()
+    if Xv is not None:
+        # 4) New signers: hold out whole video clips, test on their frames
+        import train_signs
+        vids = [v for v in train_signs.load_videos() if len(v["word"]) == 1]
+        tr, te = train_signs.split(vids)
+        Xvt, yvt, _ = load_video_letters(tr)
+        Xve, yve, _ = load_video_letters(te)
+        base = np.vstack([Xa] + ([] if Xu is None else [Xu]))
+        yb = np.concatenate([ya] + ([] if Xu is None else [yu]))
+        m = make_model().fit(*with_mirrors(base, yb))
+        print(f"[4] Video signers, model without video frames: {accuracy_score(yve, m.predict(Xve)):.3f}")
+        m = make_model().fit(*with_mirrors(np.vstack([base] + [Xvt] * VIDEO_WEIGHT),
+                                           np.concatenate([yb] + [yvt] * VIDEO_WEIGHT)))
+        pv = m.predict(Xve)
+        print(f"[5] Video signers, model with other clips' frames: {accuracy_score(yve, pv):.3f}  (P: {np.mean(pv[yve == 'P'] == 'P'):.2f})")
+
     # Final model on everything
     X = Xa if Xu is None else np.vstack([Xa, Xu])
     y = ya if Xu is None else np.concatenate([ya, yu])
+    if Xv is not None:
+        X = np.vstack([X] + [Xv] * VIDEO_WEIGHT)
+        y = np.concatenate([y] + [yv] * VIDEO_WEIGHT)
     final = make_model().fit(*with_mirrors(X, y))
     out = os.path.join(HERE, "models", "asl_classifier.npz")
     arrays = {f"W{i}": w for i, w in enumerate(final.coefs_)}

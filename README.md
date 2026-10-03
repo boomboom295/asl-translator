@@ -85,6 +85,38 @@ into `docs/models/`, then commit and push.
 | `docs/core.js` | Features, the neural network and the speller, ported from Python |
 | `docs/models/` | Copies of the trained model, written by `export_web_model.py` |
 
+## Words and moving letters (J, Z)
+
+The website has two modes (switch with the buttons or the **W** key):
+
+- **Letters** - fingerspelling. Handshape letters are typed by holding them; **J** and **Z** are
+  recognised from the movement, using a second small model.
+- **Words** - 54 common signs (hello, thank you, please, sorry, yes, no, help, family, ...).
+  Sign one word, then lower your hands. If the guess is wrong, tap one of the other guesses.
+
+How it works: the site tracks both hands and the face. A sign becomes 16 snapshots of where each
+hand is relative to the face and what shape it makes (`seqfeat.py`, mirrored in `docs/sequence.js`),
+and a neural network picks the sign. `docs/segment.js` decides when a sign starts and ends.
+
+| File | What it does |
+|---|---|
+| `tools/extract_video_landmarks.js` | Runs in a browser tab: turns sign videos into hand/face landmark data |
+| `data/asl_video_landmarks.json` | That data: 2,269 clips of 54 words + the alphabet |
+| `seqfeat.py` | Features for moving signs (same maths as `docs/sequence.js`) |
+| `synth_motion.py` | Makes extra synthetic J/Z clips (the videos have very few) |
+| `train_signs.py` | Trains + tests the word model and the moving-letter model |
+| `models/word_classifier.npz`, `models/motion_classifier.npz` | The trained models (`docs/models/*.json` for the website) |
+
+Results on held-out video clips (recordings the model never saw): words about 73% right on the
+first guess and about 89% with the right word in the top 3. The letter model was also retrained with
+frames from the video clips (many more signers): on new signers it went from 45% to 73%, and in those test clips P went
+from almost never to nearly always right. J/Z are trained mostly on synthetic movements, so they are the
+least tested - real-world feedback helps.
+
+Video source: [ASL dataset on Hugging Face](https://huggingface.co/datasets/akasheroor/American-Sign-Language-Dataset)
+(MIT licence, collected from several sources). Only landmarks are stored here, not the videos.
+About half of its clips use a video format browsers can't decode, so they were skipped.
+
 ## Datasets
 
 1. **ASL keypoint dataset** – 36,401 hand-landmark samples for A–Z, from

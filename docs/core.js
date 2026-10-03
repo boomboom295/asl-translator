@@ -85,6 +85,7 @@ export class Speller {
     this.since = 0;
     this.lastTyped = null;
     this.lastHandTime = now;
+    this.lastTypeTime = -Infinity;
   }
 
   /** letter: string or null (no hand). Returns hold progress 0..1. */
@@ -103,6 +104,7 @@ export class Speller {
     if (held >= HOLD_SECONDS && letter !== this.lastTyped) {
       this.text += letter;
       this.lastTyped = letter;
+      this.lastTypeTime = now;
     }
     return Math.min(held / HOLD_SECONDS, 1);
   }
@@ -111,6 +113,28 @@ export class Speller {
     const words = this.text.trim().split(/\s+/).filter(Boolean);
     if (words.length) this.onWord(words[words.length - 1]);
     this.text = this.text.trimEnd() + " ";
+  }
+
+  /** Type a letter recognised from motion (J, Z). Drops a letter typed just before, which was
+   *  usually the starting handshape of the motion (I for J, D for Z). */
+  typeMotionLetter(letter, now, startTime) {
+    if (this.lastTypeTime >= startTime - 1.2 && this.text && !this.text.endsWith(" ")) this.text = this.text.slice(0, -1);
+    this.text += letter;
+    this.lastTyped = letter;
+    this.lastTypeTime = now;
+  }
+
+  /** Words mode: append a whole word. */
+  addWord(word) {
+    if (this.text && !this.text.endsWith(" ")) this.text += " ";
+    this.text += word.toUpperCase() + " ";
+  }
+
+  /** Words mode: swap the last word for another guess. */
+  replaceLastWord(word) {
+    const t = this.text.trimEnd();
+    const i = t.lastIndexOf(" ");
+    this.text = (i < 0 ? "" : t.slice(0, i + 1)) + word.toUpperCase() + " ";
   }
 
   backspace() { this.text = this.text.slice(0, -1); }

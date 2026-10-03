@@ -183,3 +183,31 @@ kbd {
   .current-letter { font-size: 1.5rem; }
 }
 .top3:empty { display: none; }
+
+/* Mode switch */
+.modebar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.segmented { display: inline-flex; padding: 3px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); }
+.segmented button {
+  font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer; border: 0; border-radius: 8px;
+  padding: 7px 18px; background: transparent; color: var(--muted);
+}
+.segmented button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+.segmented button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Word guesses */
+button.pred { font: inherit; color: var(--text); border: 1px solid transparent; cursor: pointer; text-align: left; }
+button.pred:hover { border-color: var(--accent); }
+button.pred.chosen { border-color: var(--good); }
+button.pred { grid-template-columns: minmax(0, auto) minmax(30px, 1fr) 40px; }
+button.pred b { text-transform: capitalize; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.guess-note { margin: 0; }
+
+/* Vocabulary */
+.vocab-card summary { cursor: pointer; list-style: none; }
+.vocab-card summary::-webkit-details-marker { display: none; }
+.vocab-card summary h2 { display: inline; }
+.vocab-card summary::after { content: "Show"; float: right; font-size: .85rem; color: var(--accent); }
+.vocab-card[open] summary::after { content: "Hide"; }
+.vocab { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 14px 0 0; }
+.vocab li { padding: 3px 10px; border-radius: 999px; background: var(--surface-2); font-size: .85rem; text-transform: capitalize; }
+.top3 .pred { min-width: 0; }

@@ -2,6 +2,7 @@
 
 Run after `python train.py` whenever you retrain:  python export_web_model.py
 Writes docs/models/asl_classifier.json and copies models/hand_landmarker.task.
+(The word and J/Z models are written straight to docs/models/ by train_signs.py.)
 """
 import json, os, shutil
 import numpy as np

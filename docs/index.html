@@ -14,7 +14,7 @@
       <span class="logo" aria-hidden="true">ASL</span>
       <div>
         <h1>ASL Translator</h1>
-        <p class="tagline">Fingerspell A–Z into your webcam and get text and speech</p>
+        <p class="tagline">Sign letters or words into your webcam and get text and speech</p>
       </div>
     </div>
     <span class="privacy">Video stays on your device</span>
@@ -22,6 +22,13 @@
 
   <main class="layout">
     <section class="stage-card" aria-label="Camera">
+      <div class="modebar">
+        <div class="segmented" role="group" aria-label="What to recognize">
+          <button id="modeLetters" aria-pressed="true">Letters</button>
+          <button id="modeWords" aria-pressed="false">Words</button>
+        </div>
+        <span class="muted small">Press <kbd>W</kbd> to switch</span>
+      </div>
       <div class="stage" id="stage">
         <video id="video" playsinline muted></video>
         <canvas id="overlay"></canvas>
@@ -51,6 +58,7 @@
       </div>
 
       <div class="top3" id="top3" aria-label="Top predictions"></div>
+      <p class="guess-note muted small" id="guessNote" hidden></p>
     </section>
 
     <section class="side">
@@ -59,7 +67,7 @@
           <h2>Translation</h2>
           <label class="toggle"><input type="checkbox" id="autoSpeak" checked> Speak each word</label>
         </div>
-        <div id="transcript" class="transcript" aria-live="polite"><span class="placeholder">Letters you sign appear here.</span></div>
+        <div id="transcript" class="transcript" aria-live="polite"><span class="placeholder">What you sign appears here.</span></div>
         <div class="actions">
           <button class="btn" id="spaceBtn" title="End word (Space)">Space</button>
           <button class="btn" id="backBtn" title="Delete last letter (Backspace)">Delete</button>
@@ -71,19 +79,34 @@
 
       <div class="card">
         <h2>How it works</h2>
-        <ul class="howto">
-          <li><b>Type a letter:</b> hold the sign steady until the ring fills (about 0.7 s).</li>
-          <li><b>Double letters</b> (the LL in HELLO): drop your hand for a moment, then sign again.</li>
-          <li><b>End a word:</b> move your hand out of view for 1.5 s, or press <kbd>Space</kbd>.</li>
-          <li><b>Shortcuts:</b> <kbd>Backspace</kbd> delete, <kbd>C</kbd> clear, <kbd>S</kbd> speak all.</li>
-        </ul>
-        <p class="muted small">Tips: keep your whole hand in frame, palm toward the camera, about arm's length away, in good light. M, N, S, T, E and D look alike and are the hardest letters. J and Z are motion signs, so the model only sees one frame of them.</p>
+        <div id="tipsLetters">
+          <ul class="howto">
+            <li><b>Type a letter:</b> hold the sign steady until the ring fills (about 0.7 s).</li>
+            <li><b>J and Z:</b> draw them in the air like normal. The letter is typed when the movement ends.</li>
+            <li><b>Double letters</b> (the LL in HELLO): drop your hand for a moment, then sign again.</li>
+            <li><b>End a word:</b> move your hand out of view for 1.5 s, or press <kbd>Space</kbd>.</li>
+          </ul>
+          <p class="muted small">Keep your whole hand in frame, palm toward the camera, about arm's length away, in good light. M, N, S, T, E and D look alike and are the hardest letters.</p>
+        </div>
+        <div id="tipsWords" hidden>
+          <ul class="howto">
+            <li><b>Sign one word at a time.</b> Start with your hands down, sign, then lower your hands (or hold still for a second).</li>
+            <li>Sit far enough back that your <b>face and both hands</b> are in view. Where you sign (chin, forehead, chest) matters.</li>
+            <li>If it picks the wrong word, <b>tap the right guess</b> under the camera to swap it.</li>
+          </ul>
+        </div>
+        <p class="muted small"><b>Shortcuts:</b> <kbd>Backspace</kbd> delete, <kbd>C</kbd> clear, <kbd>S</kbd> speak all, <kbd>W</kbd> switch mode.</p>
       </div>
+
+      <details class="card vocab-card">
+        <summary><h2>Words it knows (<span id="vocabCount">…</span>)</h2></summary>
+        <ul class="vocab" id="vocab"></ul>
+      </details>
     </section>
   </main>
 
   <footer class="foot muted small">
-    MediaPipe hand tracking + a small neural network trained on the ASL alphabet.
+    MediaPipe hand and face tracking + small neural networks trained on the ASL alphabet and 54 common signs.
     <a href="https://github.com/boomboom295/asl-translator">Source on GitHub</a>
   </footer>
 
